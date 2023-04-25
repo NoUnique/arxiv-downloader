@@ -1,0 +1,71 @@
+version: "2.3"
+
+networks:
+  traefik:
+    external: true
+
+services:
+  dev:
+    build:
+      network: host
+      context: .
+      dockerfile: dev.Dockerfile
+      args:
+        USER: ${USER}
+        PUID: ${PUID}
+        PGID: ${PGID}
+        DOCKER_GID: ${DOCKER_GID}
+        LC: ko_KR.UTF-8
+        TZ: Asia/Seoul
+        COMPOSE_IMAGE_NAME: ${COMPOSE_IMAGE_NAME}
+    image: "${COMPOSE_IMAGE_NAME}:${USER}"
+    hostname: ${COMPOSE_IMAGE_NAME}
+    container_name: ${COMPOSE_IMAGE_NAME}_dev
+    user: ${USER}
+    environment:
+      - USER=${USER}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - DOCKER_GID=${DOCKER_GID}
+      - COMPOSE_IMAGE_NAME=${COMPOSE_IMAGE_NAME}
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      # code-server
+      - traefik.http.routers.${COMPOSE_IMAGE_NAME}.priority=1
+      - traefik.http.routers.${COMPOSE_IMAGE_NAME}.rule=PathPrefix(`/${COMPOSE_IMAGE_NAME}`)
+      - traefik.http.routers.${COMPOSE_IMAGE_NAME}.service=${COMPOSE_IMAGE_NAME}
+      - traefik.http.services.${COMPOSE_IMAGE_NAME}.loadbalancer.serverstransport=docker-transport@file
+      - traefik.http.routers.${COMPOSE_IMAGE_NAME}.middlewares=basicauth@file,${COMPOSE_IMAGE_NAME}-redirect,${COMPOSE_IMAGE_NAME}-strip
+      - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-strip.stripprefix.prefixes=/${COMPOSE_IMAGE_NAME}
+      - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-redirect.redirectregex.regex=^(?:.*:\/\/)?([^:\/]*?\.[^\/]*)[^\/\?]*\/${COMPOSE_IMAGE_NAME}$$
+      - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-redirect.redirectregex.replacement=https://$${1}/${COMPOSE_IMAGE_NAME}/
+      - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-redirect.redirectregex.permanent=true
+      # proxy
+      - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.priority=2
+      - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.rule=PathPrefix(`/${COMPOSE_IMAGE_NAME}/proxy`) || HeadersRegexp(`Referer`, `^(?:.*:\/\/)?([^:\/]*?\.[^\/]*)[^\/\?]*\/${COMPOSE_IMAGE_NAME}\/proxy\/.*`)
+      - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.service=${COMPOSE_IMAGE_NAME}
+      - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.middlewares=basicauth@file,${COMPOSE_IMAGE_NAME}-proxy-redirect,${COMPOSE_IMAGE_NAME}-strip
+      - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-proxy-redirect.redirectregex.regex=^(?:.*:\/\/)?([^:\/]*?\.[^\/]*).*\/${COMPOSE_IMAGE_NAME}\/proxy\/([0-9]+)$$
+      - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-proxy-redirect.redirectregex.replacement=https://$${1}/${COMPOSE_IMAGE_NAME}/proxy/$${2}/
+      - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-proxy-redirect.redirectregex.permanent=true
+    volumes:
+      - .:/app/${COMPOSE_IMAGE_NAME}:rw
+      - /data:/data:rw
+      - /home/${USER}/.gitconfig:/home/${USER}/.gitconfig # for git
+      - /home/${USER}/.ssh:/home/${USER}/.ssh # for sshd
+      - /etc/ssh:/etc/ssh # for sshd
+      - /var/run/docker.sock:/var/run/docker.sock # for docker-in-docker
+    command:
+      - bash
+      - -c
+      - |
+        pip install -r requirements.txt;
+        set -o allexport; source .env.dev; set +o allexport;
+        python app.py;
+    expose:
+      - "7860"
+    stdin_open: true # -i(interactive) option in docker
+    tty: true # -t(tty) option in docker

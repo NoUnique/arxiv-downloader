@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.isort",
+    "ms-python.black-formatter",
+    "github.copilot",
+    "vscodevim.vim",
+    "njpwerner.autodocstring",
+    "genieai.chatgpt-vscode"
+  ]
+}
