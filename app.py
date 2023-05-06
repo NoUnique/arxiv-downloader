@@ -11,13 +11,27 @@ from notion_client import Client
 
 
 def clean_filename(filename):
-    filename, ext = os.path.splitext(filename)
+    prefix = filename.split("]")[0] + "]"
+    filename, ext = os.path.splitext(filename.replace(prefix, "").strip())
+
     # Remove leading/trailing whitespace
     filename = filename.strip()
+
+    # Separate title from the filename
+    if " " not in filename.split(":")[0]:
+        splitted_filename = filename.split(":")
+        title = splitted_filename[0]
+        if title.islower():
+            title = title.capitalize()
+        remaining = ":".join(splitted_filename[1:]).strip()
+        filename = f"({title}) {remaining}"
 
     # Remove punctuation marks and other special characters
     valid_chars = f"-_.()[] {string.ascii_letters}{string.digits}"
     filename = "".join(c if c in valid_chars else "_" for c in filename)
+
+    # Add back the prefix
+    filename = f"{prefix} {filename}"
 
     # Truncate the filename to 255 characters (max limit on some systems)
     filename = filename[: 255 - len(ext)]
@@ -172,21 +186,4 @@ with gr.Blocks() as io:
     )
     btn_hide.click(hide_actions, outputs=[actions, btn_hide])
 
-# io.launch(share=True)
 io.launch(server_name="0.0.0.0")
-
-# app = FastAPI()
-#
-## hack: https://github.com/gradio-app/gradio/issues/3472#issuecomment-1500991923
-# @app.get("/")
-# def redirect_to_gradio():
-#    return RedirectResponse(url="gradio")
-#
-#
-# app = gr.mount_gradio_app(app, io, path=f"gradio")
-#
-# if __name__ == "__main__":
-#    import uvicorn
-#
-#    uvicorn.run(app, port=8000, host="0.0.0.0")
-#
