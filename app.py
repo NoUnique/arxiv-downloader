@@ -54,6 +54,11 @@ def add_notion_record(database, paper_id, title, published, url):
         "Date": {"date": {"start": published}},
         "Arxiv": {"url": url},
     }
+    if " " not in title.split(":")[0]:
+        short_title = title.split(":")[0]
+        if short_title.islower():
+            short_title = short_title.capitalize()
+        new_data["Name"] = {"title": [{"text": {"content": short_title}}]}
     try:
         notion.pages.create(
             parent={"database_id": database_id},
