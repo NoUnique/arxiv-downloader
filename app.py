@@ -5,8 +5,8 @@ import textwrap
 
 import arxiv
 import gradio as gr
+import uvicorn
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
 from notion_client import Client
 
 
@@ -69,8 +69,7 @@ def add_notion_record(database, paper_id, title, published, url):
         print(err)
 
 
-# with gr.Blocks(theme=gr.themes.Soft()) as io:
-with gr.Blocks() as io:
+with gr.Blocks(theme=gr.themes.Soft()) as io:
     with gr.Column():
         input = gr.Textbox(label="URL")
         with gr.Row():
@@ -191,4 +190,9 @@ with gr.Blocks() as io:
     )
     btn_hide.click(hide_actions, outputs=[actions, btn_hide])
 
-io.launch(server_name="0.0.0.0")
+root_path = os.environ.get("CONTAINER_IMAGE_NAME", "arxiv-downloader")
+app = FastAPI(root_path=f"/{root_path}")
+app = gr.mount_gradio_app(app, io, path="/")
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=7860)
