@@ -43,14 +43,14 @@ services:
       - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-redirect.redirectregex.regex=^(?:.*:\/\/)?([^:\/]*?\.[^\/]*)[^\/\?]*\/${COMPOSE_IMAGE_NAME}$$
       - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-redirect.redirectregex.replacement=https://$${1}/${COMPOSE_IMAGE_NAME}/
       - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-redirect.redirectregex.permanent=true
-      # proxy
-      - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.priority=2
-      - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.rule=PathPrefix(`/${COMPOSE_IMAGE_NAME}/proxy`) || HeadersRegexp(`Referer`, `^(?:.*:\/\/)?([^:\/]*?\.[^\/]*)[^\/\?]*\/${COMPOSE_IMAGE_NAME}\/proxy\/.*`)
-      - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.service=${COMPOSE_IMAGE_NAME}
-      - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.middlewares=basicauth@file,${COMPOSE_IMAGE_NAME}-proxy-redirect,${COMPOSE_IMAGE_NAME}-strip
-      - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-proxy-redirect.redirectregex.regex=^(?:.*:\/\/)?([^:\/]*?\.[^\/]*).*\/${COMPOSE_IMAGE_NAME}\/proxy\/([0-9]+)$$
-      - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-proxy-redirect.redirectregex.replacement=https://$${1}/${COMPOSE_IMAGE_NAME}/proxy/$${2}/
-      - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-proxy-redirect.redirectregex.permanent=true
+      # # proxy
+      # - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.priority=2
+      # - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.rule=PathPrefix(`/${COMPOSE_IMAGE_NAME}/proxy`) || HeadersRegexp(`Referer`, `^(?:.*:\/\/)?([^:\/]*?\.[^\/]*)[^\/\?]*\/${COMPOSE_IMAGE_NAME}\/proxy\/.*`)
+      # - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.service=${COMPOSE_IMAGE_NAME}
+      # - traefik.http.routers.${COMPOSE_IMAGE_NAME}-proxy.middlewares=basicauth@file,${COMPOSE_IMAGE_NAME}-proxy-redirect,${COMPOSE_IMAGE_NAME}-strip
+      # - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-proxy-redirect.redirectregex.regex=^(?:.*:\/\/)?([^:\/]*?\.[^\/]*).*\/${COMPOSE_IMAGE_NAME}\/proxy\/([0-9]+)$$
+      # - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-proxy-redirect.redirectregex.replacement=https://$${1}/${COMPOSE_IMAGE_NAME}/proxy/$${2}/
+      # - traefik.http.middlewares.${COMPOSE_IMAGE_NAME}-proxy-redirect.redirectregex.permanent=true
     volumes:
       - .:/app/${COMPOSE_IMAGE_NAME}:rw
       - /data:/data:rw
