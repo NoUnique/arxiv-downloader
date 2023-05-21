@@ -134,7 +134,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as io:
         )
 
     def get_info(url):
-        pattern = r"([0-2])([0-9])(0|1)([0-9])\.[0-9]{4,5}(v[0-9]{1,2})?"
+        pattern = r"[0-9]{4}\.[0-9]{4,5}(v[0-9]{1,2})?"
         match = re.search(pattern, url)
 
         assert match, "Wrong URL"
@@ -144,7 +144,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as io:
         search = arxiv.Search(id_list=[info_id])
         result = next(search.results())
 
-        info_ver = result.entry_id[-2:]
+        info_ver = re.search(pattern, result.entry_id)[1]
         info_published = result.published.date()
         info_title = result.title
         info_url = f"https://arxiv.org/abs/{info_id}"
